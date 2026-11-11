@@ -97,7 +97,7 @@ def load_data():
 day_df, hour_df = load_data()
 
 # ==========================================
-# SIDEBAR / WIDGET FILTER
+# SIDEBAR / WIDGET FILTER INTERAKTIF
 # ==========================================
 with st.sidebar:
     st.image("https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&w=600&q=80", use_container_width=True)
@@ -106,7 +106,7 @@ with st.sidebar:
     st.markdown("Analisis data historis peminjaman sepeda Washington D.C. (2011–2012).")
     st.markdown("---")
     
-    # Filter Rentang Tanggal
+    # Filter 1: Rentang Tanggal Interaktif
     min_date = day_df['dteday'].min().date()
     max_date = day_df['dteday'].max().date()
     
@@ -117,7 +117,7 @@ with st.sidebar:
         max_value=max_date
     )
     
-    # Filter Musim (Season)
+    # Filter 2: Pilihan Musim (Season)
     all_seasons = ['Spring', 'Summer', 'Fall', 'Winter']
     selected_seasons = st.multiselect(
         label="🍂 Filter Musim (Season):",
@@ -125,7 +125,7 @@ with st.sidebar:
         default=all_seasons
     )
     
-    # Filter Kondisi Cuaca (Weather)
+    # Filter 3: Pilihan Kondisi Cuaca (Weather)
     available_weather = list(day_df['weather_label'].unique())
     selected_weather = st.multiselect(
         label="⛅ Filter Kondisi Cuaca:",
@@ -164,7 +164,7 @@ else:
 # HEADER & RINGKASAN METRIK UTAMA
 # ==========================================
 st.title("🚲 Capital Bikeshare Performance Dashboard")
-st.markdown("Dashboard interaktif untuk mengeksplorasi pengaruh cuaca, musim, pola jam komuter, serta segmentasi waktu operasional peminjaman sepeda.")
+st.markdown("Dashboard interaktif untuk mengeksplorasi pengaruh cuaca, musim, pola jam komuter, serta segmentasi waktu operasional peminjaman sepeda sepanjang periode tahun 2011–2012.")
 
 if filtered_day_df.empty:
     st.warning("⚠️ Tidak ada data yang sesuai dengan kombinasi filter yang dipilih. Silakan sesuaikan kembali filter di sidebar.")
@@ -220,7 +220,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # ------------------------------------------
 with tab1:
     st.subheader("Pengaruh Musim dan Kondisi Cuaca terhadap Peminjaman Sepeda")
-    st.markdown("Menjawab Pertanyaan Bisnis 1: *Bagaimana pengaruh musim (season) dan kondisi cuaca (weathersit) terhadap rata-rata dan total peminjaman sepeda harian?*")
+    st.markdown("Menjawab Pertanyaan Bisnis 1: *Bagaimana pengaruh musim (season) dan kondisi cuaca (weathersit) terhadap rata-rata dan total peminjaman sepeda harian sepanjang periode tahun 2011–2012?*")
     
     # Tren Deret Waktu Harian
     st.markdown("#### Tren Volume Peminjaman Harian")
@@ -280,38 +280,73 @@ with tab1:
 # ------------------------------------------
 with tab2:
     st.subheader("Pola Peminjaman Sepeda per Jam: Pengguna Casual vs Registered")
-    st.markdown("Menjawab Pertanyaan Bisnis 2: *Bagaimana perbedaan pola peminjaman sepeda per jam antara pengguna biasa (casual) dan pengguna terdaftar (registered) pada hari kerja vs hari libur?*")
+    st.markdown("Menjawab Pertanyaan Bisnis 2: *Bagaimana perbedaan pola peminjaman sepeda per jam (hourly pattern) antara pengguna biasa (casual) dan pengguna terdaftar (registered) pada hari kerja (working day) dibandingkan hari libur (weekend/holiday) sepanjang periode tahun 2011–2012?*")
     
     if filtered_hour_df is not None and not filtered_hour_df.empty:
         hourly_summary = filtered_hour_df.groupby(['workingday', 'hr'])[['casual', 'registered', 'cnt']].mean().reset_index()
-        
-        fig_hr, axes_hr = plt.subplots(1, 2, figsize=(16, 5), sharey=True)
-        
-        # Hari Kerja (Working Day)
         work_data = hourly_summary[hourly_summary['workingday'] == 1]
-        axes_hr[0].plot(work_data['hr'], work_data['registered'], color='#2980b9', linewidth=2.5, marker='o', label='Registered')
-        axes_hr[0].plot(work_data['hr'], work_data['casual'], color='#e67e22', linewidth=2.5, marker='s', linestyle='--', label='Casual')
-        axes_hr[0].set_title("Hari Kerja (Working Day)\n[Pola Bimodal - Jam Berangkat & Pulang Kantor]", fontsize=12, fontweight='bold')
-        axes_hr[0].set_xlabel("Jam (00:00 - 23:00)", fontsize=10)
-        axes_hr[0].set_ylabel("Rata-rata Peminjaman per Jam (Unit)", fontsize=10)
-        axes_hr[0].set_xticks(range(0, 24, 2))
-        axes_hr[0].legend(frameon=True, facecolor='white', loc='upper left')
-        axes_hr[0].axvspan(7.5, 8.5, color='#3498db', alpha=0.15)
-        axes_hr[0].axvspan(16.5, 18.5, color='#3498db', alpha=0.15)
-        
-        # Hari Libur / Akhir Pekan
         nonwork_data = hourly_summary[hourly_summary['workingday'] == 0]
-        axes_hr[1].plot(nonwork_data['hr'], nonwork_data['registered'], color='#2980b9', linewidth=2.5, marker='o', label='Registered')
-        axes_hr[1].plot(nonwork_data['hr'], nonwork_data['casual'], color='#e67e22', linewidth=2.5, marker='s', linestyle='--', label='Casual')
-        axes_hr[1].set_title("Hari Libur / Akhir Pekan (Weekend & Holiday)\n[Pola Unimodal - Rekreasi Siang Hari]", fontsize=12, fontweight='bold')
-        axes_hr[1].set_xlabel("Jam (00:00 - 23:00)", fontsize=10)
-        axes_hr[1].set_xticks(range(0, 24, 2))
-        axes_hr[1].legend(frameon=True, facecolor='white', loc='upper left')
-        axes_hr[1].axvspan(12, 16, color='#f39c12', alpha=0.15)
         
-        plt.tight_layout()
-        st.pyplot(fig_hr)
-        plt.close(fig_hr)
+        # Fitur Interaktif Tambahan untuk Eksplorasi Kategori Hari
+        day_filter_option = st.radio(
+            label="🔘 Filter Interaktif Tipe Hari:",
+            options=["Perbandingan Bersisian (Hari Kerja vs Akhir Pekan)", "Hanya Hari Kerja (Working Day)", "Hanya Hari Libur / Akhir Pekan (Weekend/Holiday)"],
+            horizontal=True
+        )
+        
+        if day_filter_option == "Hanya Hari Kerja (Working Day)":
+            fig_hr, ax_hr = plt.subplots(figsize=(12, 5))
+            ax_hr.plot(work_data['hr'], work_data['registered'], color='#2980b9', linewidth=2.5, marker='o', label='Registered')
+            ax_hr.plot(work_data['hr'], work_data['casual'], color='#e67e22', linewidth=2.5, marker='s', linestyle='--', label='Casual')
+            ax_hr.set_title("Hari Kerja (Working Day) - Pola Bimodal [Jam Berangkat (08:00) & Pulang Kantor (17:00-18:00)]", fontsize=12, fontweight='bold')
+            ax_hr.set_xlabel("Jam (00:00 - 23:00)", fontsize=10)
+            ax_hr.set_ylabel("Rata-rata Peminjaman per Jam (Unit)", fontsize=10)
+            ax_hr.set_xticks(range(0, 24, 2))
+            ax_hr.legend(frameon=True, facecolor='white', loc='upper left')
+            ax_hr.axvspan(7.5, 8.5, color='#3498db', alpha=0.15)
+            ax_hr.axvspan(16.5, 18.5, color='#3498db', alpha=0.15)
+            plt.tight_layout()
+            st.pyplot(fig_hr)
+            plt.close(fig_hr)
+        elif day_filter_option == "Hanya Hari Libur / Akhir Pekan (Weekend/Holiday)":
+            fig_hr, ax_hr = plt.subplots(figsize=(12, 5))
+            ax_hr.plot(nonwork_data['hr'], nonwork_data['registered'], color='#2980b9', linewidth=2.5, marker='o', label='Registered')
+            ax_hr.plot(nonwork_data['hr'], nonwork_data['casual'], color='#e67e22', linewidth=2.5, marker='s', linestyle='--', label='Casual')
+            ax_hr.set_title("Hari Libur / Akhir Pekan (Weekend & Holiday) - Pola Unimodal [Rekreasi Siang Hari (12:00-16:00)]", fontsize=12, fontweight='bold')
+            ax_hr.set_xlabel("Jam (00:00 - 23:00)", fontsize=10)
+            ax_hr.set_ylabel("Rata-rata Peminjaman per Jam (Unit)", fontsize=10)
+            ax_hr.set_xticks(range(0, 24, 2))
+            ax_hr.legend(frameon=True, facecolor='white', loc='upper left')
+            ax_hr.axvspan(12, 16, color='#f39c12', alpha=0.15)
+            plt.tight_layout()
+            st.pyplot(fig_hr)
+            plt.close(fig_hr)
+        else:
+            fig_hr, axes_hr = plt.subplots(1, 2, figsize=(16, 5), sharey=True)
+            
+            # Hari Kerja (Working Day)
+            axes_hr[0].plot(work_data['hr'], work_data['registered'], color='#2980b9', linewidth=2.5, marker='o', label='Registered')
+            axes_hr[0].plot(work_data['hr'], work_data['casual'], color='#e67e22', linewidth=2.5, marker='s', linestyle='--', label='Casual')
+            axes_hr[0].set_title("Hari Kerja (Working Day)\n[Pola Bimodal - Jam Berangkat & Pulang Kantor]", fontsize=12, fontweight='bold')
+            axes_hr[0].set_xlabel("Jam (00:00 - 23:00)", fontsize=10)
+            axes_hr[0].set_ylabel("Rata-rata Peminjaman per Jam (Unit)", fontsize=10)
+            axes_hr[0].set_xticks(range(0, 24, 2))
+            axes_hr[0].legend(frameon=True, facecolor='white', loc='upper left')
+            axes_hr[0].axvspan(7.5, 8.5, color='#3498db', alpha=0.15)
+            axes_hr[0].axvspan(16.5, 18.5, color='#3498db', alpha=0.15)
+            
+            # Hari Libur / Akhir Pekan
+            axes_hr[1].plot(nonwork_data['hr'], nonwork_data['registered'], color='#2980b9', linewidth=2.5, marker='o', label='Registered')
+            axes_hr[1].plot(nonwork_data['hr'], nonwork_data['casual'], color='#e67e22', linewidth=2.5, marker='s', linestyle='--', label='Casual')
+            axes_hr[1].set_title("Hari Libur / Akhir Pekan (Weekend & Holiday)\n[Pola Unimodal - Rekreasi Siang Hari]", fontsize=12, fontweight='bold')
+            axes_hr[1].set_xlabel("Jam (00:00 - 23:00)", fontsize=10)
+            axes_hr[1].set_xticks(range(0, 24, 2))
+            axes_hr[1].legend(frameon=True, facecolor='white', loc='upper left')
+            axes_hr[1].axvspan(12, 16, color='#f39c12', alpha=0.15)
+            
+            plt.tight_layout()
+            st.pyplot(fig_hr)
+            plt.close(fig_hr)
         
         col_pk1, col_pk2 = st.columns(2)
         with col_pk1:
@@ -420,7 +455,7 @@ with tab4:
        Musim dan kondisi cuaca memainkan peranan sangat signifikan terhadap penggunaan sepeda. Musim Gugur (*Fall*) adalah periode puncak performa bisnis dengan rata-rata **5.644 unit/hari** (total 1.061.129 peminjaman), disusul Musim Panas (*Summer*, 4.992 unit/hari). Cuaca cerah mendominasi ~68,6% dari seluruh transaksi peminjaman, sedangkan cuaca hujan/salju mereduksi permintaan hingga lebih dari 63%.
        
     2. **Dinamika Jam & Perilaku Pengguna (Pertanyaan 2)**:
-       Pola peminjaman sepeda terbagi jelas menjadi dua profil operasional:
+       Pola peminjaman sepeda terbagi jelas menjadi dua profil operasional sepanjang periode tahun 2011–2012:
        - **Hari Kerja (Komuter)**: Berpola *bimodal* dengan lonjakan pada jam berangkat (**08:00**) dan jam pulang kerja (**17:00–18:00**), didominasi secara masif oleh pengguna *registered*.
        - **Hari Libur (Rekreasi)**: Berpola *unimodal* berpusat di tengah hari (**12:00–16:00**) dengan lonjakan tajam pengguna *casual* untuk aktivitas rekreasional.
     """)
