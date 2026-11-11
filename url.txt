@@ -1,10 +1,1 @@
-# Tautan Deployment Streamlit Cloud
-# Silakan ganti URL di bawah dengan URL aplikasi Streamlit Cloud Anda setelah dideploy:
-https://capital-bikeshare-dashboard-dicoding.streamlit.app/
-
-Catatan Langkah Deployment ke Streamlit Cloud:
-1. Unggah (push) seluruh isi folder submission ini ke repositori publik di GitHub Anda.
-2. Kunjungi https://share.streamlit.io/ dan masuk dengan akun GitHub Anda.
-3. Klik tombol "New app".
-4. Pilih repositori GitHub Anda, branch "main", dan atur Main file path ke "dashboard/dashboard.py".
-5. Klik "Deploy!" dan salin URL yang dihasilkan ke berkas ini jika diperlukan.
+https://ds318b6y0179-ananta-fundamental-andal.streamlit.app/
